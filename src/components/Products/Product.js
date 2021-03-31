@@ -1,15 +1,17 @@
-import { useLocation, useParams } from "react-router"
+import { useHistory, useLocation, useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 import * as Api from "../../api/ApiRequest"
 
 export const Product = () => {
     const location = useLocation()
     const params = useParams()
+    const history = useHistory()
 
     const [product, setProduct] = useState(null)
     const [productSelected, setProductSelected] = useState(null)
     const [optionsSelected, setOptionsSelected] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
         if (location.state && location.state.product) {
@@ -32,9 +34,17 @@ export const Product = () => {
             .catch(e => console.log(e))
     }
 
-    const handleDeleteOptionSelected = opt => e => {
+    const handleDeleteOptionSelected = () => {
         setProductSelected(null)
         setOptionsSelected([])
+    }
+
+    const handleSubmit = e => {
+        e.preventDefault()
+        const id = null === productSelected ? product.id : productSelected.id
+        Api.addToCart(id, quantity)
+            .then(r => history.push('/cart'))
+            .catch(e => console.log(e))
     }
 
     const productOptions = product?.options?.map((opt, index) => {
@@ -46,7 +56,7 @@ export const Product = () => {
                         <input
                             type="radio"
                             name={opt.name}
-                            onClick={handleDeleteOptionSelected(opt)}
+                            onClick={handleDeleteOptionSelected}
                         /> Rien
                     </li>
                     {
@@ -83,6 +93,20 @@ export const Product = () => {
 
                             <h5>Options :</h5>
                             {productOptions}
+                            <div className="mb-2">
+                                <label htmlFor="quantity">
+                                    Quantité :
+                                    <select name="quantity" onChange={(e) => setQuantity(e.target.value)}>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <button className="btn btn-primary" onClick={handleSubmit}>
+                                Ajouter au panier
+                            </button>
                         </div>
                     </div>
                 </>
